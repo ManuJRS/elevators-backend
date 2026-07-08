@@ -1,0 +1,32 @@
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Docker y volúmenes locales
+mysql_data/
+db_data/
+
+# WordPress — contenido generado en runtime
+wp-content/uploads/
+wp-content/upgrade/
+wp-content/cache/
+wp-content/backup*/
+wp-content/debug.log
+wp-content/advanced-cache.php
+wp-content/object-cache.php
+
+# Logs
+*.log
+logs/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores e IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

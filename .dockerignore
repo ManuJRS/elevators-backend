@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+README.md
+mysql_data/
+db_data/
+wp-content/uploads/
+wp-content/upgrade/
+*.log
