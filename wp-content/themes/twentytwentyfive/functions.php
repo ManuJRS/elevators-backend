@@ -157,3 +157,90 @@ if ( ! function_exists( 'twentytwentyfive_format_binding' ) ) :
 		}
 	}
 endif;
+
+// Agregar este código al final del archivo functions.php de tu tema en WordPress
+add_action('template_redirect', 'custom_multi_add_to_cart');
+
+function custom_multi_add_to_cart() {
+    // Si no viene nuestro parámetro personalizado, no hacemos nada
+    if ( ! isset($_GET['cargar-carrito']) || empty($_GET['cargar-carrito']) ) {
+        return;
+    }
+
+    // Opcional: Vaciar el carrito previo de WP para que coincida exactamente con Vue 3
+    WC()->cart->empty_cart();
+
+    // Parsear los productos (Formato esperado: ID:CANTIDAD,ID:CANTIDAD)
+    $items = explode(',', $_GET['cargar-carrito']);
+
+    foreach ( $items as $item ) {
+        $pair = explode(':', $item);
+        $product_id = intval($pair[0]);
+        $quantity = isset($pair[1]) ? intval($pair[1]) : 1;
+
+        if ( $product_id > 0 ) {
+            WC()->cart->add_to_cart($product_id, $quantity);
+        }
+    }
+
+    // Una vez cargados todos, redirigir limpiamente a la misma página sin el parámetro para evitar bucles
+    $checkout_url = wc_get_checkout_url();
+    wp_safe_redirect($checkout_url);
+    exit;
+}
+
+add_action( 'wp_head', 'redireccionar_titulo_navbar_a_vue' );
+function redireccionar_titulo_navbar_a_vue() {
+	if ( ! is_cart() && ! is_checkout() ) {
+		return;
+	}
+
+	$frontend_url = redireccionar_titulo_navbar_a_vue_build_url();
+	?>
+	<script>
+	document.addEventListener( 'DOMContentLoaded', function () {
+		var redirectUrl = <?php echo wp_json_encode( $frontend_url ); ?>;
+		var selectors = [
+			'.site-branding a',
+			'.custom-logo-link',
+			'.navbar-brand',
+			'.site-title a',
+			'.wp-block-site-title a',
+			'.wp-block-site-logo a',
+		].join( ', ' );
+
+		document.querySelectorAll( selectors ).forEach( function ( element ) {
+			element.setAttribute( 'href', redirectUrl );
+		} );
+	} );
+	</script>
+	<?php
+}
+
+function redireccionar_titulo_navbar_a_vue_build_url() {
+	$frontend_base = 'http://localhost:5173/';
+	$params        = array();
+
+	if ( is_cart() || is_checkout() ) {
+		$params['from_checkout'] = 'true';
+	}
+
+	if ( function_exists( 'WC' ) && WC()->cart && ! WC()->cart->is_empty() ) {
+		$cart_items = array();
+
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			$product_id = isset( $cart_item['product_id'] ) ? (int) $cart_item['product_id'] : 0;
+			$quantity   = isset( $cart_item['quantity'] ) ? (int) $cart_item['quantity'] : 0;
+
+			if ( $product_id > 0 && $quantity > 0 ) {
+				$cart_items[] = $product_id . ':' . $quantity;
+			}
+		}
+
+		if ( ! empty( $cart_items ) ) {
+			$params['carrito'] = implode( ',', $cart_items );
+		}
+	}
+
+	return ! empty( $params ) ? add_query_arg( $params, $frontend_base ) : $frontend_base;
+}
