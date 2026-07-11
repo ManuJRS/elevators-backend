@@ -2,7 +2,7 @@
 # This file is distributed under the same license as the Plugins - WooCommerce - Stable (latest release) package.
 msgid ""
 msgstr ""
-"PO-Revision-Date: 2026-07-07 15:29:45+0000\n"
+"PO-Revision-Date: 2026-07-09 22:32:36+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -61,6 +61,193 @@ msgstr "Permite a los compradores añadir el producto actual a su lista de deseo
 msgctxt "block title"
 msgid "Add to Wishlist Button"
 msgstr "Botón Añadir a la lista de deseos"
+
+#: src/StoreApi/Schemas/V1/ShopperListSchema.php:82
+msgid "List of saved items."
+msgstr "Lista de elementos guardados."
+
+#: src/StoreApi/Schemas/V1/ShopperListSchema.php:76
+msgid "Number of items currently in the list."
+msgstr "Número de elementos actualmente en la lista."
+
+#: src/StoreApi/Schemas/V1/ShopperListSchema.php:69
+msgid "The date the list was created, as GMT."
+msgstr "La fecha de creación de la lista, en GMT."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:202
+msgid "The date the item was saved, as GMT."
+msgstr "La fecha en la que se guardó el elemento, en GMT."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:196
+msgid "Product thumbnail as a fully-formed <img> element with srcset, sizes, alt, and lazy-loading attributes. Falls back to the configured placeholder image when the product has no image or no longer exists."
+msgstr "La miniatura del producto es un elemento <img> totalmente formado con los atributos srcset, sizes, alt y lazy-loading. Vuelve a recuperar la imagen de marcador de posición configurada cuando el producto no tiene imagen o ya no existe."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:190
+msgid "Live product price as HTML, formatted via wc_price including sale/discount markup. Empty when the product no longer exists."
+msgstr "Precio del producto en vivo en formato HTML, con formato wc_price y porcentaje de rebaja/descuento. Vacío cuando el producto ya no existe."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:161
+msgid "Live product prices. Omitted when the product no longer exists."
+msgstr "Precios de los productos en vivo. Se omite cuando el producto ya no existe."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:132
+msgid "Chosen variation attributes, if applicable."
+msgstr "Atributos de variaciones elegidos, si se aplican."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:122
+msgid "List of images for the live product. Empty when the product no longer exists."
+msgstr "Lista de imágenes del producto en vivo. Vacío cuando el producto ya no existe."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:115
+msgid "Product URL. Null when the row is a tombstone (so iAPI strips the anchor href)."
+msgstr "URL del producto. Nulo cuando la fila es una lápida (por lo que iAPI quita el href de anclaje)."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:109
+msgid "Product name. Live when is_live is true; falls back to the at-save title snapshot otherwise."
+msgstr "Nombre del producto. En vivo cuando is_live es true; de lo contrario, recurre a la instantánea del título en el momento de guardar."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:103
+msgid "True when the product can be added to the cart."
+msgstr "El valor es true cuando este producto no se puede añadir al carrito."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:97
+msgid "True when the row serves live product data; false rows are at-save tombstones."
+msgstr "El valor es true cuando la fila sirve datos de productos en vivo; cuando el valor es false, las filas son lápidas en el momento de guardar."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:91
+msgid "Quantity of this saved item."
+msgstr "Cantidad de este artículo guardado."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:85
+msgid "Variation ID at the time the item was saved, or 0 for non-variable products."
+msgstr "ID de la variación en el momento en que se guardó el artículo, o 0 para productos no variables."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:79
+msgid "Product ID at the time the item was saved."
+msgstr "ID del producto en el momento en que se guardó el artículo."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:73
+msgid "Variation ID if applicable, otherwise product ID."
+msgstr "ID de la variación si corresponde, de lo contrario ID del producto."
+
+#: src/StoreApi/Schemas/V1/ShopperListItemSchema.php:67
+msgid "Stable identifier for the saved item within its list."
+msgstr "Identificador estable del elemento guardado en su lista."
+
+#: src/StoreApi/Schemas/V1/ProductAttributeTermSchema.php:53
+msgid "Experimental visual swatch data for wc-visual attribute terms."
+msgstr "Datos experimentales de muestra visual para términos de atributos wc-visual."
+
+#: src/StoreApi/Routes/V1/ShopperListItemsByKey.php:95
+msgid "That item isn't in your saved list anymore."
+msgstr "Ese artículo ya no está en tu lista guardada."
+
+#: src/StoreApi/Routes/V1/ShopperListItemsByKey.php:61
+msgid "Item key."
+msgstr "Clave del artículo."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:225
+msgid "Provide cart_item_key or product_id."
+msgstr "Proporciona cart_item_key o product_id."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:208
+msgid "No cart item exists for the supplied key."
+msgstr "No existe ningún artículo de carrito para la clave proporcionada."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:175
+msgid "No product exists for the supplied item."
+msgstr "No existe ningún producto para el artículo suministrado."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:135
+#: src/StoreApi/Routes/V1/ShopperListItems.php:164
+#: src/StoreApi/Routes/V1/ShopperListItemsByKey.php:91
+#: src/StoreApi/Routes/V1/ShopperListsBySlug.php:87
+msgid "Your saved list isn't available right now."
+msgstr "Tu lista guardada no está disponible en estos momentos."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:111
+msgid "Quantity for the saved item."
+msgstr "Cantidad del artículo guardado."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:87
+msgid "Product or variation ID to save. Required when cart_item_key is not supplied."
+msgstr "ID de producto o variación a guardar. Obligatorio cuando no se proporciona cart_item_key."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:83
+msgid "Existing cart item key to copy into the list."
+msgstr "Clave de artículo del carrito existente para copiar en la lista."
+
+#: src/StoreApi/Routes/V1/ShopperListItems.php:61
+#: src/StoreApi/Routes/V1/ShopperListItemsByKey.php:57
+#: src/StoreApi/Routes/V1/ShopperListsBySlug.php:54
+#: src/StoreApi/Schemas/V1/ShopperListSchema.php:63
+msgid "Stable slug for the list."
+msgstr "Slug estable para la lista."
+
+#: src/StoreApi/Routes/V1/ProductAttributeTerms.php:79
+msgid "If true, include experimental visual swatch data for wc-visual attribute terms."
+msgstr "Si es true, incluye datos experimentales de muestra visual para términos de atributos wc-visual."
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:165
+msgid "First image is used as the primary. Drag to reorder."
+msgstr "La primera imagen se utiliza como principal. Arrastra para reordenar."
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:134
+msgid "Manage variation gallery images"
+msgstr "Gestionar imágenes de la galería de variaciones"
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:86
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:277
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:323
+msgid "Attachment file missing"
+msgstr "Falta el archivo adjunto"
+
+#. translators: %d: gallery image position
+#. translators: %d attachment ID
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:85
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:307
+msgid "Show gallery image %d"
+msgstr "Mostrar la imagen de la galería %d"
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:83
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:145
+msgid "Primary"
+msgstr "Principal"
+
+#. translators: %d: number of variation gallery images
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:82
+msgid "%d images"
+msgstr "%d imágenes"
+
+#. translators: %d: number of variation gallery images
+#. translators: %d number of variation gallery images
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:80
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:353
+msgid "%d image"
+msgid_plural "%d images"
+msgstr[0] "%d imagen"
+msgstr[1] "%d imágenes"
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:78
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:348
+msgid "No images yet"
+msgstr "Todavía no hay imágenes"
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:76
+msgid "New primary image set."
+msgstr "Nuevo conjunto de imágenes principales."
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:75
+msgid "Variation gallery order updated."
+msgstr "Se ha actualizado el orden de la galería de variaciones."
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:74
+msgid "Image removed from variation gallery."
+msgstr "Imagen eliminada de la galería de variaciones."
+
+#: src/Internal/VariationGallery/ClassicVariationGalleryAdmin.php:73
+msgid "Image replaced."
+msgstr "Imagen reemplazada."
 
 #: assets/client/blocks/add-to-cart-with-options-variation-description/block.json
 msgctxt "block description"
