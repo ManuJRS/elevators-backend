@@ -26,6 +26,11 @@ services:
       WORDPRESS_DB_USER: ${MYSQL_USER:-wp_user}
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD:-wp_password}
       WORDPRESS_DB_NAME: ${MYSQL_DATABASE:-wordpress_db}
+      GRAPHQL_JWT_AUTH_SECRET_KEY: ${GRAPHQL_JWT_AUTH_SECRET_KEY:-citizacion-local-jwt-secret-change-me}
+      WORDPRESS_CONFIG_EXTRA: |
+        if ( ! defined( 'GRAPHQL_JWT_AUTH_SECRET_KEY' ) ) {
+          define( 'GRAPHQL_JWT_AUTH_SECRET_KEY', getenv( 'GRAPHQL_JWT_AUTH_SECRET_KEY' ) ?: 'citizacion-local-jwt-secret-change-me' );
+        }
     volumes:
       - ./wp-content:/var/www/html/wp-content
 

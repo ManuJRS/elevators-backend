@@ -158,37 +158,6 @@ if ( ! function_exists( 'twentytwentyfive_format_binding' ) ) :
 	}
 endif;
 
-// Agregar este código al final del archivo functions.php de tu tema en WordPress
-add_action('template_redirect', 'custom_multi_add_to_cart');
-
-function custom_multi_add_to_cart() {
-    // Si no viene nuestro parámetro personalizado, no hacemos nada
-    if ( ! isset($_GET['cargar-carrito']) || empty($_GET['cargar-carrito']) ) {
-        return;
-    }
-
-    // Opcional: Vaciar el carrito previo de WP para que coincida exactamente con Vue 3
-    WC()->cart->empty_cart();
-
-    // Parsear los productos (Formato esperado: ID:CANTIDAD,ID:CANTIDAD)
-    $items = explode(',', $_GET['cargar-carrito']);
-
-    foreach ( $items as $item ) {
-        $pair = explode(':', $item);
-        $product_id = intval($pair[0]);
-        $quantity = isset($pair[1]) ? intval($pair[1]) : 1;
-
-        if ( $product_id > 0 ) {
-            WC()->cart->add_to_cart($product_id, $quantity);
-        }
-    }
-
-    // Una vez cargados todos, redirigir limpiamente a la misma página sin el parámetro para evitar bucles
-    $checkout_url = wc_get_checkout_url();
-    wp_safe_redirect($checkout_url);
-    exit;
-}
-
 add_action( 'wp_head', 'redireccionar_titulo_navbar_a_vue' );
 function redireccionar_titulo_navbar_a_vue() {
 	if ( ! is_cart() && ! is_checkout() ) {
