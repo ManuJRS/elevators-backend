@@ -55,6 +55,26 @@ El frontend Vue se conecta al endpoint GraphQL. En su `.env` debe apuntar a:
 VITE_GRAPHQL_URL=http://localhost:8080/graphql
 ```
 
+## Puente híbrido Vue ↔ WooCommerce
+
+El mu-plugin `wp-content/mu-plugins/citizacion-vue-bridge.php` sincroniza el checkout:
+
+1. **Autenticación:** Lee el parámetro `vue_jwt` enviado desde Vue, valida el token con **Simple JWT Login** e inicia sesión en WordPress/WooCommerce.
+2. **Carrito:** Lee `cargar-carrito` con formato `id:cantidad,id:cantidad` y reemplaza el carrito de WooCommerce.
+3. **Seguridad:** Redirige al checkout limpio sin exponer el JWT en la URL.
+
+Flujo esperado desde Vue:
+
+```text
+/finalizar-compra/?cargar-carrito=123:2,456:1&vue_jwt=<token>
+```
+
+Requisitos:
+
+- Plugin **WPGraphQL JWT Authentication** activo.
+- Clave secreta definida en `GRAPHQL_JWT_AUTH_SECRET_KEY` (ver `.env` y mu-plugin `citizacion-jwt-config.php`).
+- WooCommerce con página de checkout en `/finalizar-compra/`.
+
 ## Estructura del proyecto
 
 ```
