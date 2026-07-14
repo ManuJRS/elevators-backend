@@ -23,6 +23,28 @@ if ( ! function_exists( 'twentytwentyfive_post_format_setup' ) ) :
 endif;
 add_action( 'after_setup_theme', 'twentytwentyfive_post_format_setup' );
 
+if ( ! function_exists( 'twentytwentyfive_menus_setup' ) ) :
+	/**
+	 * Enables classic navigation menus and registers menu locations.
+	 *
+	 * Block themes hide Appearance > Menus by default; this restores the
+	 * classic Menus screen and exposes locations for assignment.
+	 *
+	 * @return void
+	 */
+	function twentytwentyfive_menus_setup() {
+		add_theme_support( 'menus' );
+
+		register_nav_menus(
+			array(
+				'primary' => __( 'Menú principal', 'twentytwentyfive' ),
+				'footer'  => __( 'Menú de pie de página', 'twentytwentyfive' ),
+			)
+		);
+	}
+endif;
+add_action( 'after_setup_theme', 'twentytwentyfive_menus_setup' );
+
 if ( ! function_exists( 'twentytwentyfive_editor_style' ) ) :
 	/**
 	 * Enqueues editor-style.css in the editors.
