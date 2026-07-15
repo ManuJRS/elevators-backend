@@ -653,3 +653,82 @@ function tt5_register_menu_item_is_map_graphql_field() {
 }
 add_action( 'graphql_register_types', 'tt5_register_menu_item_is_map_graphql_field' );
 
+/**
+ * -----------------------------------------------------------------------------
+ * Habilitar subida segura de SVG en la Biblioteca de Medios
+ * -----------------------------------------------------------------------------
+ * No altera el flujo de menús (que solo guarda URL en post meta).
+ */
+
+/**
+ * Añade image/svg+xml a los MIME types permitidos.
+ *
+ * @param array<string, string> $mimes Tipos MIME actuales.
+ * @return array<string, string>
+ */
+function tt5_allow_svg_upload_mimes( $mimes ) {
+	$mimes['svg']  = 'image/svg+xml';
+	$mimes['svgz'] = 'image/svg+xml';
+
+	return $mimes;
+}
+add_filter( 'upload_mimes', 'tt5_allow_svg_upload_mimes' );
+
+/**
+ * Corrige la detección de extensión/MIME para SVG (WP modernos usan finfo/real_mime).
+ *
+ * @param array{ext?: string|false, type?: string|false, proper_filename?: string|false} $data      Resultado de la validación.
+ * @param string                                                                         $file      Ruta temporal del archivo.
+ * @param string                                                                         $filename  Nombre original.
+ * @param array<string, string>|null                                                     $mimes     MIME permitidos.
+ * @return array{ext?: string|false, type?: string|false, proper_filename?: string|false}
+ */
+function tt5_fix_svg_filetype_and_ext( $data, $file, $filename, $mimes ) {
+	unset( $file, $mimes );
+
+	$ext = strtolower( pathinfo( $filename, PATHINFO_EXTENSION ) );
+
+	if ( 'svg' !== $ext && 'svgz' !== $ext ) {
+		return $data;
+	}
+
+	$data['ext']  = $ext;
+	$data['type'] = 'image/svg+xml';
+
+	return $data;
+}
+add_filter( 'wp_check_filetype_and_ext', 'tt5_fix_svg_filetype_and_ext', 10, 4 );
+
+/**
+ * Sanitiza el contenido de un SVG recién subido (elimina script / handlers).
+ * Opera sobre el archivo en disco; no interfiere con el meta URL de menús.
+ *
+ * @param array{file?: string, url?: string, type?: string} $upload Datos del archivo subido.
+ * @return array{file?: string, url?: string, type?: string}
+ */
+function tt5_sanitize_uploaded_svg( $upload ) {
+	if ( empty( $upload['file'] ) || empty( $upload['type'] ) ) {
+		return $upload;
+	}
+
+	if ( 'image/svg+xml' !== $upload['type'] ) {
+		return $upload;
+	}
+
+	$contents = file_get_contents( $upload['file'] );
+	if ( false === $contents || '' === $contents ) {
+		return $upload;
+	}
+
+	// Elimina bloques peligrosos frecuentes en SVG maliciosos.
+	$contents = preg_replace( '/<script\b[^>]*>.*?<\/script>/is', '', $contents );
+	$contents = preg_replace( '/\son\w+\s*=\s*("|\').*?\1/i', '', $contents );
+	$contents = preg_replace( '/javascript\s*:/i', '', $contents );
+
+	if ( is_string( $contents ) ) {
+		file_put_contents( $upload['file'], $contents );
+	}
+
+	return $upload;
+}
+add_filter( 'wp_handle_upload', 'tt5_sanitize_uploaded_svg' );
