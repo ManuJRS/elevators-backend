@@ -236,7 +236,6 @@ function redireccionar_titulo_navbar_a_vue_build_url() {
 	return ! empty( $params ) ? add_query_arg( $params, $frontend_base ) : $frontend_base;
 }
 
-
 /**
  * -----------------------------------------------------------------------------
  * Icono SVG del Footer (Media Uploader → URL)
@@ -248,6 +247,10 @@ function redireccionar_titulo_navbar_a_vue_build_url() {
 
 if ( ! defined( 'TT5_MENU_ITEM_FOOTER_SVG_META' ) ) {
 	define( 'TT5_MENU_ITEM_FOOTER_SVG_META', '_menu_item_footer_svg' );
+}
+
+if ( ! defined( 'TT5_MENU_ITEM_IS_MAP_META' ) ) {
+	define( 'TT5_MENU_ITEM_IS_MAP_META', '_menu_item_is_map' );
 }
 
 if ( ! defined( 'TT5_FOOTER_MENU_LOCATION' ) ) {
@@ -365,6 +368,43 @@ function tt5_menu_item_footer_svg_field( $item_id, $item, $depth, $args, $id ) {
 add_action( 'wp_nav_menu_item_custom_fields', 'tt5_menu_item_footer_svg_field', 10, 5 );
 
 /**
+ * Checkbox: renderizar el subelemento como mapa de Google Maps.
+ *
+ * @param int    $item_id Menu item ID.
+ * @param object $item    Menu item data object.
+ * @param int    $depth   Depth of menu item.
+ * @param array  $args    Menu item args.
+ * @param int    $id      Nav menu ID.
+ * @return void
+ */
+function tt5_menu_item_is_map_field( $item_id, $item, $depth, $args, $id ) {
+	unset( $item, $depth, $args, $id );
+
+	$checked = (string) get_post_meta( $item_id, TT5_MENU_ITEM_IS_MAP_META, true );
+	$field   = 'menu-item-is-map[' . (int) $item_id . ']';
+	?>
+	<p class="field-is-map description description-wide tt5-is-map-field">
+		<label for="edit-menu-item-is-map-<?php echo esc_attr( (string) $item_id ); ?>">
+			<input
+				type="checkbox"
+				id="edit-menu-item-is-map-<?php echo esc_attr( (string) $item_id ); ?>"
+				class="tt5-is-map-checkbox"
+				name="<?php echo esc_attr( $field ); ?>"
+				value="1"
+				<?php checked( $checked, '1' ); ?>
+			/>
+			<?php esc_html_e( '¿Renderizar como Mapa de Google Maps? (Oculta el texto del enlace)', 'twentytwentyfive' ); ?>
+		</label>
+		<br />
+		<span class="description">
+			<?php esc_html_e( 'En GraphQL solo retorna true para subelementos (hijos) del menú FOOTER. Usa la URL del enlace como src/embed del mapa.', 'twentytwentyfive' ); ?>
+		</span>
+	</p>
+	<?php
+}
+add_action( 'wp_nav_menu_item_custom_fields', 'tt5_menu_item_is_map_field', 11, 5 );
+
+/**
  * Guarda la URL del SVG al actualizar un ítem de menú.
  *
  * @param int   $menu_id         ID del menú.
@@ -397,6 +437,37 @@ function tt5_save_menu_item_footer_svg( $menu_id, $menu_item_db_id, $args ) {
 	update_post_meta( $menu_item_db_id, TT5_MENU_ITEM_FOOTER_SVG_META, $sanitized );
 }
 add_action( 'wp_update_nav_menu_item', 'tt5_save_menu_item_footer_svg', 10, 3 );
+
+/**
+ * Guarda el flag booleano is_map al actualizar un ítem de menú.
+ * Los checkboxes no se envían si están desmarcados: en ese caso se limpia el meta.
+ *
+ * @param int   $menu_id         ID del menú.
+ * @param int   $menu_item_db_id ID del ítem de menú (post).
+ * @param array $args            Argumentos del ítem.
+ * @return void
+ */
+function tt5_save_menu_item_is_map( $menu_id, $menu_item_db_id, $args ) {
+	unset( $menu_id, $args );
+
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	$posted = isset( $_POST['menu-item-is-map'] ) && is_array( $_POST['menu-item-is-map'] )
+		? wp_unslash( $_POST['menu-item-is-map'] )
+		: array();
+
+	$is_map = isset( $posted[ $menu_item_db_id ] ) && '1' === (string) $posted[ $menu_item_db_id ];
+
+	if ( $is_map ) {
+		update_post_meta( $menu_item_db_id, TT5_MENU_ITEM_IS_MAP_META, '1' );
+		return;
+	}
+
+	delete_post_meta( $menu_item_db_id, TT5_MENU_ITEM_IS_MAP_META );
+}
+add_action( 'wp_update_nav_menu_item', 'tt5_save_menu_item_is_map', 10, 3 );
 
 /**
  * JS del Media Uploader con delegación de eventos (ítems clonados / drag & drop).
@@ -543,3 +614,42 @@ function tt5_register_menu_item_footer_svg_graphql_field() {
 	);
 }
 add_action( 'graphql_register_types', 'tt5_register_menu_item_footer_svg_graphql_field' );
+
+/**
+ * Registra isMap en MenuItem (Boolean para hijos del FOOTER).
+ *
+ * @return void
+ */
+function tt5_register_menu_item_is_map_graphql_field() {
+	if ( ! function_exists( 'register_graphql_field' ) ) {
+		return;
+	}
+
+	register_graphql_field(
+		'MenuItem',
+		'isMap',
+		array(
+			'type'        => 'Boolean',
+			'description' => __(
+				'Indica si el subelemento del FOOTER debe renderizarse como mapa de Google Maps (oculta el texto del enlace).',
+				'twentytwentyfive'
+			),
+			'resolve'     => static function ( $menu_item ) {
+				if ( ! tt5_menu_item_is_footer_child( $menu_item ) ) {
+					return false;
+				}
+
+				$database_id = isset( $menu_item->databaseId ) ? (int) $menu_item->databaseId : 0;
+				if ( $database_id <= 0 ) {
+					return false;
+				}
+
+				$raw = get_post_meta( $database_id, TT5_MENU_ITEM_IS_MAP_META, true );
+
+				return '1' === (string) $raw || true === $raw || 1 === $raw;
+			},
+		)
+	);
+}
+add_action( 'graphql_register_types', 'tt5_register_menu_item_is_map_graphql_field' );
+
