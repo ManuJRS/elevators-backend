@@ -655,6 +655,167 @@ add_action( 'graphql_register_types', 'tt5_register_menu_item_is_map_graphql_fie
 
 /**
  * -----------------------------------------------------------------------------
+ * Texto de Copyright del Pie de Página (configuración global por menú)
+ * -----------------------------------------------------------------------------
+ * Campo de texto en la configuración del menú (Apariencia > Menús), guardado
+ * como term meta del menú y expuesto en WPGraphQL como `Menu.copyrightText`.
+ *
+ * Nota: el core de WordPress no ofrece ningún hook PHP dentro del formulario
+ * de configuración del menú (nav-menus.php), por lo que el campo se inyecta
+ * vía JS en esa sección; el guardado sí es 100% server-side.
+ */
+
+if ( ! defined( 'TT5_MENU_FOOTER_COPYRIGHT_META' ) ) {
+	define( 'TT5_MENU_FOOTER_COPYRIGHT_META', '_menu_footer_copyright' );
+}
+
+if ( ! defined( 'TT5_FOOTER_COPYRIGHT_DEFAULT' ) ) {
+	define( 'TT5_FOOTER_COPYRIGHT_DEFAULT', '© 2026 Citizacion Ecommerce. Todos los derechos reservados.' );
+}
+
+/**
+ * Resuelve el ID del menú actualmente seleccionado en Apariencia > Menús,
+ * replicando la lógica de nav-menus.php (query var > último editado > primero).
+ *
+ * @return int ID del término del menú o 0.
+ */
+function tt5_get_selected_nav_menu_id() {
+	if ( isset( $_GET['menu'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		return (int) $_GET['menu']; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+
+	$recently_edited = (int) get_user_option( 'nav_menu_recently_edited' );
+	if ( $recently_edited > 0 && wp_get_nav_menu_object( $recently_edited ) ) {
+		return $recently_edited;
+	}
+
+	$menus = wp_get_nav_menus();
+
+	return ! empty( $menus[0]->term_id ) ? (int) $menus[0]->term_id : 0;
+}
+
+/**
+ * Inyecta el campo "Texto de Copyright del Pie de Página" en la sección
+ * "Configuración del menú" mediante JS (no existe hook PHP en ese formulario).
+ *
+ * @return void
+ */
+function tt5_print_menu_copyright_field_script() {
+	$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+
+	if ( ! $screen || 'nav-menus' !== $screen->id ) {
+		return;
+	}
+
+	$menu_id = tt5_get_selected_nav_menu_id();
+
+	if ( $menu_id <= 0 ) {
+		return;
+	}
+
+	$current = get_term_meta( $menu_id, TT5_MENU_FOOTER_COPYRIGHT_META, true );
+	$current = is_string( $current ) ? $current : '';
+
+	$field_html =
+		'<fieldset class="menu-settings-group tt5-footer-copyright">' .
+			'<legend class="menu-settings-group-name howto">' .
+				esc_html__( 'Texto de Copyright del Pie de Página', 'twentytwentyfive' ) .
+			'</legend>' .
+			'<div class="menu-settings-input">' .
+				'<input type="text" class="widefat" id="tt5-menu-footer-copyright" name="menu-footer-copyright" value="' .
+					esc_attr( $current ) .
+				'" placeholder="' . esc_attr( TT5_FOOTER_COPYRIGHT_DEFAULT ) . '" />' .
+				'<p class="description">' .
+					esc_html__( 'Se expone en GraphQL como Menu.copyrightText. Vacío = usa el texto por defecto.', 'twentytwentyfive' ) .
+				'</p>' .
+			'</div>' .
+		'</fieldset>';
+	?>
+	<script>
+	(function ($) {
+		'use strict';
+
+		$(function () {
+			var $settings = $('.menu-settings').first();
+
+			if (!$settings.length || $('#tt5-menu-footer-copyright').length) {
+				return;
+			}
+
+			$settings.append(<?php echo wp_json_encode( $field_html ); ?>);
+		});
+	})(jQuery);
+	</script>
+	<?php
+}
+add_action( 'admin_print_footer_scripts', 'tt5_print_menu_copyright_field_script' );
+
+/**
+ * Guarda el texto de copyright como term meta del menú al guardar el menú.
+ *
+ * @param int $menu_id ID del término del menú.
+ * @return void
+ */
+function tt5_save_menu_footer_copyright( $menu_id ) {
+	if ( ! current_user_can( 'edit_theme_options' ) ) {
+		return;
+	}
+
+	// Solo procesar el submit del formulario de menús (el core ya validó nonce).
+	if ( ! isset( $_POST['menu-footer-copyright'] ) ) {
+		return;
+	}
+
+	$copyright = sanitize_text_field( wp_unslash( $_POST['menu-footer-copyright'] ) );
+
+	if ( '' === $copyright ) {
+		delete_term_meta( $menu_id, TT5_MENU_FOOTER_COPYRIGHT_META );
+		return;
+	}
+
+	update_term_meta( $menu_id, TT5_MENU_FOOTER_COPYRIGHT_META, $copyright );
+}
+add_action( 'wp_update_nav_menu', 'tt5_save_menu_footer_copyright' );
+
+/**
+ * Registra copyrightText en el tipo Menu de WPGraphQL.
+ *
+ * @return void
+ */
+function tt5_register_menu_copyright_graphql_field() {
+	if ( ! function_exists( 'register_graphql_field' ) ) {
+		return;
+	}
+
+	register_graphql_field(
+		'Menu',
+		'copyrightText',
+		array(
+			'type'        => 'String',
+			'description' => __(
+				'Texto de copyright del pie de página configurado en el menú. Devuelve el texto por defecto si no se ha personalizado.',
+				'twentytwentyfive'
+			),
+			'resolve'     => static function ( $menu ) {
+				$database_id = isset( $menu->databaseId ) ? (int) $menu->databaseId : 0;
+
+				if ( $database_id > 0 ) {
+					$stored = get_term_meta( $database_id, TT5_MENU_FOOTER_COPYRIGHT_META, true );
+
+					if ( is_string( $stored ) && '' !== trim( $stored ) ) {
+						return $stored;
+					}
+				}
+
+				return TT5_FOOTER_COPYRIGHT_DEFAULT;
+			},
+		)
+	);
+}
+add_action( 'graphql_register_types', 'tt5_register_menu_copyright_graphql_field' );
+
+/**
+ * -----------------------------------------------------------------------------
  * Habilitar subida segura de SVG en la Biblioteca de Medios
  * -----------------------------------------------------------------------------
  * No altera el flujo de menús (que solo guarda URL en post meta).
